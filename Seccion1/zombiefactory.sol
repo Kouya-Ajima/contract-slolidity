@@ -26,24 +26,16 @@ contract ZombieFactory {
         NewZombie(id, _name, _dna);
     }
 
-    function _generateRandomDna(string _str) private view 
+    function _generateRandomDna(string memory _str) private view 
         returns (uint){
         uint rand = uint(keccak256(_str));
         return rand % dnaModulus;
     }
 
-    function createRandomZombie(string _name) public {
+    function createRandomZombie(string memory _name) public {
         //  ゾンビのDNA乱数を16桁になるように変換
         uint randDna = _generateRandomDna(_name);
         // ゾンビを作成 ＋ DNAの乱数を格納
         _createZombie(_name, randDna);
     }
-
-
-
-
-
-
-
-
 }
