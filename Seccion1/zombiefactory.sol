@@ -21,14 +21,15 @@ contract ZombieFactory {
     //   → _で関数を始めるのが通例。基本的にはPrivateにする
     // 関数修飾子 → view → 読み取り専用
     //          → pure → アプリ内のデータにすらアクセス不可
-    function _createZombie (string _name, uint _dna) private{
-        uint id = zombies.push(Zombie(_name, _dna)) -1;
-        NewZombie(id, _name, _dna);
+    function _createZombie (string memory _name, uint _dna) private{
+        zombies.push(Zombie(_name, _dna));
+        uint id = zombies.length - 1;
+        emit  NewZombie(id, _name, _dna);
     }
 
     function _generateRandomDna(string memory _str) private view 
         returns (uint){
-        uint rand = uint(keccak256(_str));
+        uint rand = uint(keccak256(bytes(_str)));
         return rand % dnaModulus;
     }
 

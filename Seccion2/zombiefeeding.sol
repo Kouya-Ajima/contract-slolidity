@@ -1,12 +1,13 @@
 pragma solidity ^0.8.0;
+
 import "./zombiefactory.sol";
 
+
 /** インターフェース → 他人のコントラクトから呼び出し、呼び出されする関数。
-    returnsステートメントの後ろに {}　を付けない。
-    　→ コンパイラがインターフェースとして勝手に認識する。
+    function の returnsステートメントの後ろに {} を付けない。
  */
-contract KittyInterface{
-    // external　→ ブロックの外からしか呼び出せない関数
+interface KittyInterface{
+    // external → ブロックの外からしか呼び出せない関数
     // Solidity では、複数のリターンを返して良い
     function getKitty(uint256 _id) external view returns (
     bool isGestating,
@@ -28,8 +29,9 @@ contract ZombieFeeding is ZombieFactory{
     // インターフェースのメソッドの引数に同じ型の値を渡してインターフェースを作成する。
     KittyInterface kittyContract = KittyInterface(ckAddress);
 
-    // _targetDna →　捕食する人間のDna （クリプトキティインターフェースの、キティ→ genes値）
-    function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) public{
+    // _targetDna → 捕食する人間のDna （クリプトキティインターフェースの、キティ→ genes値）
+    function feedAndMultiply(uint _zombieId, 
+                uint _targetDna, string memory _species) internal {
         // ゾンビIDがすでにオーナーが存在するものであれば処理を抜ける
         require(msg.sender == zombieToOwner[_zombieId]);
         // 【不明点】zombies[_zombieId] で Zombie が取得できる？ IDで取得できる？
@@ -39,7 +41,7 @@ contract ZombieFeeding is ZombieFactory{
         // 人間とゾンビの平均値のDnaを算出
         uint newDna = (myZombie.dna + _targetDna) / 2;
         // Stirringの比較はハッシュ化する。 → Kitty と同じなら、ゾンビを猫の特徴に変える。
-        if (keccak256(_species) == keccak256("kitty")){
+        if (keccak256(bytes(_species)) == keccak256("kitty")) {
             // 334455 - 55 + 99 == 334499
             newDna = newDna - newDna % 100 + 99;
         }
