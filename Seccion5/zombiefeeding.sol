@@ -55,7 +55,7 @@ contract ZombieFeeding is ZombieFactory {
      * @dev ゾンビIDがすでにオーナーが存在するものであれば処理を抜ける
      * @param _zombieId ゾンビのインデックス
      */
-    modifier ownerOf(uint _zombieId) {
+    modifier onlyOwnerOf(uint _zombieId) {
         require(msg.sender == zombieToOwner[_zombieId]);
         _;
     }
@@ -95,7 +95,7 @@ contract ZombieFeeding is ZombieFactory {
         uint _zombieId,
         uint _targetDna,
         string memory _species
-    ) internal ownerOf(_zombieId) {
+    ) internal onlyOwnerOf(_zombieId) {
         // 【不明点】zombies[_zombieId] で Zombie が取得できる？ IDで取得できる？
         // _zombieIdはインデックス？ → 参照を取得
         Zombie storage myZombie = zombies[_zombieId];

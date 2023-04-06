@@ -3,6 +3,9 @@ pragma solidity ^0.8.0;
 import "./ownable.sol";
 
 contract ZombieFactory is Ownable {
+    // オーバーフロー対策 → 0.8.0 では、デフォルトでコンパイラに組み込まれるようになった。
+    // using SafeMath for uint256;
+
     // イベントを用意 → Gorutine のチャネルの送信みたいなもの。
     event NewZombie(uint zombieId, string name, uint dna);
 
@@ -45,6 +48,8 @@ contract ZombieFactory is Ownable {
     //          → pure → アプリ内のデータにすらアクセス不可
     // internal -> ブロック内部からしか実行できない -> internal > private
     function _createZombie(string memory _name, uint _dna) internal {
+        // 注：2038年問題を防止しないことを選択しました。そのため、以下のものは必要ありません。
+        // readyTimeのオーバーフローを心配する。どうせ2038年には我々のアプリはダメになっているのだから ;)
         // uint id = zombies.push(Zombie(_name, _dna, 1, uint32(block.timestamp + cooldownTime))) -1;
         zombies.push(
             Zombie(_name, _dna, 1, uint32(block.timestamp + cooldownTime), 0, 0)
