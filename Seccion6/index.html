@@ -28,12 +28,32 @@
         このノードからWeb３のプロバイダを呼びだす必要があるが、
         プロバイダを用意すればその必要はない。 → 代わりにやってくれる。
         → Metamask を使う。
+
+        Web3.jsでは、web3プロバイダがコード中のロジックをトリガーとして引くようにイベントを 
+        サブスクライブ できる:
+        cryptoZombies.events.NewZombie()
+        .on("data", function(event) {
+        let zombie = event.returnValues;
+        // `event.returnValues`オブジェクトのこのイベントの戻り値３つにアクセスできる:
+        console.log("A new zombie was born!", zombie.zombieId, zombie.name, zombie.dna);
+        }).on("error", console.error);
+
+        index -> イベントをフィルタリングして、そのユーザに関連する変更のみをリッスンする
+        event Transfer(address indexed _from, address indexed _to, uint256 _tokenId);
+        _fromと_toはindexedされているので、フロントのイベントリスナーでフィルターすることは可能
     -->
+
     <body>
+        <!-- status -->
+        <div id="txStatus"></div>
+        <!-- ゾンビ表示用 -->
+        <div id="zombies"></div>
+
         <script>
             // コンストラクトのインスタンスを格納する
             let cryptoZombies;
             let userAccount;
+
             /** web3js に接続するメソッド */
             function startApp() {
                 let cryptoZombiesAddress = 'YOUR_CONTRACT_ADDRESS';
@@ -42,21 +62,6 @@
                     cryptoZombiesABI,
                     cryptoZombiesAddress
                 );
-            }
-
-            /** Publicメソッドを呼び出して、ゾンビの配列を取得している */
-            function getZombieDetails(id) {
-                return cryptoZombies.methods.zombies(id).call;
-            }
-
-            /** ゾンビのオーナーのアドレスを返す。*/
-            function zombieToOwner(id) {
-                return cryptoZombies.methods.zombieToOwner[id].call;
-            }
-
-            /** オーナーの所持しているゾンビの一覧を返す。*/
-            function getZombiesByOwner(owner) {
-                cryptoZombies.methods.getZombiesByOwner(owner).call;
 
                 // 100 MSごとに、今のアカウントのゾンビ一覧を表示する。
                 let accountInterval = setInterval(function () {
@@ -69,6 +74,124 @@
                             .call.then(displayZombies);
                     }
                 }, 100);
+
+                // Tramsferイベントを実行
+                cryptoZombies.events
+                    .Transfer({ filter: { _to: userAccount } })
+                    .on('data', function (event) {
+                        // イベントをサブスクライブする。
+                        let data = event.returnValues;
+                        // 現在のユーザーがゾンビを受け取った！
+                        // それを示すようUIをアップデートする何かを行おう
+                        getZombiesByOwner(userAccount).then(displayZombies);
+                    })
+                    .on('error', console.error);
+            }
+
+            function displayZombies(ids) {
+                $('#zombies').empty();
+
+                for (id of ids) {
+                    $('#zombies').append(`<div class="zombie">
+                        <ul>
+                        <li>Name: ${zombie.name}</li>
+                        <li>DNA: ${zombie.dna}</li>
+                        <li>Level: ${zombie.level}</li>
+                        <li>Wins: ${zombie.winCount}</li>
+                        <li>Losses: ${zombie.lossCount}</li>
+                        <li>Ready Time: ${zombie.readyTime}</li>
+                        </ul>
+                    </div>`);
+                }
+            }
+
+            function createRandomZombie(name) {
+                // しばらく時間がかかるので、UIを更新してユーザーに
+                // トランザクションが送信されたことを知らせる
+                $('#txStatus').text(
+                    'Creating new zombie on the blockchain. This may take a while...'
+                );
+                // トランザクションをコントラクトに送信する:
+                return cryptoZombies.methods
+                    .createRandomZombie(name)
+                    .send({ from: userAccount })
+                    .on('receipt', function (receipt) {
+                        $('#txStatus').text(
+                            'Successfully created ' + name + '!'
+                        );
+                        // トランザクションがブロックチェーンに取り込まれた。UIをアップデートしよう
+                        getZombiesByOwner(userAccount).then(displayZombies);
+                    })
+                    .on('error', function (error) {
+                        // トランザクションが失敗したことをユーザーに通知するために何かを行う
+                        $('#txStatus').text(error);
+                    });
+            }
+
+            /** パブリック関数 → 引数を渡して、Send を送る。 */
+            function feedOnKitty(zombieId, kittyId) {
+                // しばらく時間がかかるので、UIを更新してユーザーに
+                // トランザクションが送信されたことを知らせる
+                $('#txStatus').text('Eating a kitty. This may take a while...');
+                // トランザクションをコントラクトに送信する:
+                return (
+                    cryptoZombies.methods
+                        .feedOnKitty(zombieId, kittyId)
+                        // Send → 呼び出すアカウントの、Fromが必要
+                        .send({ from: userAccount })
+                        .on('receipt', function (receipt) {
+                            $('#txStatus').text(
+                                'Ate a kitty and spawned a new Zombie!'
+                            );
+                            // トランザクションがブロックチェーンに取り込まれた。UIをアップデートしよう
+                            getZombiesByOwner(userAccount).then(displayZombies);
+                        })
+                        .on('error', function (error) {
+                            // トランザクションが失敗したことをユーザーに通知するために何かを行う
+                            $('#txStatus').text(error);
+                        })
+                );
+            }
+
+            /** payable： ValueとFrom をSendする。Wei を ether に変換して送る。 */
+            function levelUp(zombieId) {
+                // しばらく時間がかかるので、UIを更新してユーザーに
+                // トランザクションが送信されたことを知らせる
+                $('#txStatus').text('Leveling up your zombie...');
+                // トランザクションをコントラクトに送信する:
+                return (
+                    cryptoZombies.methods
+                        .levelUp(zombieId)
+                        // Send → 呼び出すアカウントの、Fromが必要
+                        .send({
+                            from: userAccount,
+                            value: web3js.util.toWai('0.001', 'ether'),
+                        })
+                        .on('receipt', function (receipt) {
+                            $('#txStatus').text(
+                                'Power overwhelming! Zombie successfully leveled up'
+                            );
+                        })
+                        .on('error', function (error) {
+                            // トランザクションが失敗したことをユーザーに通知するために何かを行う
+                            $('#txStatus').text(error);
+                        })
+                );
+            }
+
+            /** Publicメソッドを呼び出して、ゾンビの構造体を取得している */
+            function getZombieDetails(id) {
+                return cryptoZombies.methods.zombies(id).call;
+            }
+
+            /** ゾンビのオーナーのアドレスを返す。*/
+            function zombieToOwner(id) {
+                return cryptoZombies.methods.zombieToOwner[id].call;
+            }
+
+            /** オーナーの所持しているゾンビIDの一覧を返す。*/
+            function getZombiesByOwner(owner) {
+                return cryptoZombies.methods.getZombiesByOwner(owner).call;
             }
 
             /** ロード時にweb3js に接続する → インストールされてない場合はインストール
