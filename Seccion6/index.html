@@ -17,6 +17,86 @@
             type="text/javascript"
             src="../web3.min.js"
         ></script>
+        <script>
+            language = 'javascript';
+            type = 'text/javascript';
+            src = '/cryptozombies_abi.js';
+        </script>
     </head>
-    <body></body>
+
+    <!-- Ethereum → 各ノードがブロックチェーンのコピーを持っている
+        このノードからWeb３のプロバイダを呼びだす必要があるが、
+        プロバイダを用意すればその必要はない。 → 代わりにやってくれる。
+        → Metamask を使う。
+    -->
+    <body>
+        <script>
+            // コンストラクトのインスタンスを格納する
+            let cryptoZombies;
+            let userAccount;
+            /** web3js に接続するメソッド */
+            function startApp() {
+                let cryptoZombiesAddress = 'YOUR_CONTRACT_ADDRESS';
+                cryptoZombies = new web3js.eth.Contract(
+                    // インポートしたJSファイルの変数
+                    cryptoZombiesABI,
+                    cryptoZombiesAddress
+                );
+            }
+
+            /** Publicメソッドを呼び出して、ゾンビの配列を取得している */
+            function getZombieDetails(id) {
+                return cryptoZombies.methods.zombies(id).call;
+            }
+
+            /** ゾンビのオーナーのアドレスを返す。*/
+            function zombieToOwner(id) {
+                return cryptoZombies.methods.zombieToOwner[id].call;
+            }
+
+            /** オーナーの所持しているゾンビの一覧を返す。*/
+            function getZombiesByOwner(owner) {
+                cryptoZombies.methods.getZombiesByOwner(owner).call;
+
+                // 100 MSごとに、今のアカウントのゾンビ一覧を表示する。
+                let accountInterval = setInterval(function () {
+                    if (userAccount !== web3.eth.userAccount[0]) {
+                        userAccount = web3.eth.userAccount[0];
+
+                        // コントラクトからメソッドを実行 → Thenで、実行後の処理
+                        cryptoZombies.methods
+                            .updateInterface(userAccount)
+                            .call.then(displayZombies);
+                    }
+                }, 100);
+            }
+
+            /** ロード時にweb3js に接続する → インストールされてない場合はインストール
+             * @web3.js
+             *  call -> ViewやPur などの、トランザクションを生成しない読み取りの関数を呼ぶ
+             *          myContract.methods.myMethod(123).call()
+             *          インスタンス.methods関数.コントラクトのメソッド.call で呼び出す
+             *
+             * Send -> トランザクションを生成する関数を呼ぶ。
+             *          トランザクションの署名から、ガスの支払い要求まで全部やってくれる。
+             *          myContract.methods.myMethod(123).send()
+             *
+             * Call,Send の関数は非同期関数になる →　Promiseを返す。
+             */
+            window.addEventListener('load', function () {
+                // Web3がブラウザにインジェクトされているかチェック (Mist/MetaMask)
+                if (typeof web3 !== 'undefined') {
+                    // Mist/MetaMaskのプロバイダの使用
+                    web3js = new Web3(web3.currentProvider);
+                } else {
+                    // ユーザーがweb3を持たない場合の対処。
+                    // アプリを使用するためにMetamaskをインストールするよう
+                    // 伝えるメッセージを表示。
+                }
+
+                // アプリのスタート＆Web3.jsへの自由なアクセスが可能に:
+                startApp();
+            });
+        </script>
+    </body>
 </html>

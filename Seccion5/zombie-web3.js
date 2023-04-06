@@ -1,7 +1,7 @@
 /** @format */
 
 // コントラクトへアクセス ############
-var abi; //コンパイラー
+var abi; //コントラクトをJson形式で表したファイル
 var ZombieFeedingContract = web3.eth.contract(abi);
 var contractAddress; // Ethereumにデプロイした、コントラクトのアドレス
 // ZombieFactory変数で、上記コントラクトの Public関数・event にアクセスできるようにする。
@@ -16,14 +16,14 @@ let kittyId = 1;
 // もし全ての情報がブロックチェーン上に格納されていれば、サーバーの
 // 障害を心配することはなくなるがな。まぁこのゾンビゲームを気に入ってもらえなければ、
 // APIを変更するか我々のアクセスをブロックするだけだ。問題ない ;)
-let apiUrl = "https://api.cryptokitties.co/kitties/" + kittyId;
+let apiUrl = 'https://api.cryptokitties.co/kitties/' + kittyId;
 $.get(apiUrl, function (data) {
     let imgUrl = data.image_url;
     // 画像を表示する部分だ
 });
 
 // ユーザーが子猫をクリックししたときの処理だ：
-$(".kittyImage").click(function (e) {
+$('.kittyImage').click(function (e) {
     // コントラクトの`feedOnKitty` メソッドを呼び出す
     ZombieFeeding.feedOnKitty(zombieId, kittyId);
 });

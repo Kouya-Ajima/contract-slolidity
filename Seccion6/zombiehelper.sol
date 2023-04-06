@@ -87,7 +87,8 @@ contract ZombieHelper is ZombieFeeding {
     }
 
     /**
-        @dev マップを作ってownerToZombies[owner].push(zombieId) をやると
+        @dev オーナーの所持しているゾンビの一覧を返す。 → マップでやるとガスコストが高くなるので、配列。
+            マップを作ってownerToZombies[owner].push(zombieId) をやると
             配列に順次格納するので、配列内のゾンビの移動があった場合に 1つ動かすと 19個動かしたり
             しなくちゃならない。 → ガスコストが大幅にかかる。
 
