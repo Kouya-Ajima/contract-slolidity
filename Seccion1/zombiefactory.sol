@@ -1,7 +1,6 @@
 pragma solidity ^0.8.0;
 
 contract ZombieFactory {
-
     // イベントを用意 → Gorutine のチャネルの送信みたいなもの。
     event NewZombie(uint zombieId, string name, uint dna);
 
@@ -21,14 +20,15 @@ contract ZombieFactory {
     //   → _で関数を始めるのが通例。基本的にはPrivateにする
     // 関数修飾子 → view → 読み取り専用
     //          → pure → アプリ内のデータにすらアクセス不可
-    function _createZombie (string memory _name, uint _dna) private{
+    function _createZombie(string memory _name, uint _dna) private {
         zombies.push(Zombie(_name, _dna));
         uint id = zombies.length - 1;
-        emit  NewZombie(id, _name, _dna);
+        emit NewZombie(id, _name, _dna);
     }
 
-    function _generateRandomDna(string memory _str) private view 
-        returns (uint){
+    function _generateRandomDna(
+        string memory _str
+    ) private view returns (uint) {
         uint rand = uint(keccak256(bytes(_str)));
         return rand % dnaModulus;
     }

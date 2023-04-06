@@ -22,7 +22,7 @@ contract Ownable {
 
     /**
    * @dev オーナー以外のアカウントから呼び出された場合、スローされます。
-      onlyOwnerの_;ステートメントにたどり着いた時に,戻ってコードを実行
+        onlyOwnerの_;ステートメントにたどり着いた時に,戻ってコードを実行
    */
     modifier onlyOwner() {
         require(msg.sender == owner);

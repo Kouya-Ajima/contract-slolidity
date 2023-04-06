@@ -52,6 +52,15 @@ contract ZombieFeeding is ZombieFactory {
     KittyInterface kittyContract; //  = KittyInterface(ckAddress);
 
     /**
+     * @dev ゾンビIDがすでにオーナーが存在するものであれば処理を抜ける
+     * @param _zombieId ゾンビのインデックス
+     */
+    modifier ownerOf(uint _zombieId) {
+        require(msg.sender == zombieToOwner[_zombieId]);
+        _;
+    }
+
+    /**
     @dev ハードコーディングではなく、関数を設定して後から修正できるようにする。
         external → 誰でも呼び出せる。 -> コントラクトをOwnableにして、所有者権限にする。
         Ownableコントラクトをコピーペーストして継承して使う.
@@ -78,16 +87,15 @@ contract ZombieFeeding is ZombieFactory {
     }
 
     /**
-        @param _targetDna → 捕食する人間のDna 
-        （クリプトキティインターフェースの、キティ→ genes値）
+     * @dev ゾンビが人間を食べて、人間にDNAを感染させる。
+     * @param _targetDna → 捕食する人間のDna
+     * （クリプトキティインターフェースの、キティ→ genes値）
      */
     function feedAndMultiply(
         uint _zombieId,
         uint _targetDna,
         string memory _species
-    ) internal {
-        // ゾンビIDがすでにオーナーが存在するものであれば処理を抜ける
-        require(msg.sender == zombieToOwner[_zombieId]);
+    ) internal ownerOf(_zombieId) {
         // 【不明点】zombies[_zombieId] で Zombie が取得できる？ IDで取得できる？
         // _zombieIdはインデックス？ → 参照を取得
         Zombie storage myZombie = zombies[_zombieId];

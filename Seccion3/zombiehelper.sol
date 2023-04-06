@@ -10,12 +10,10 @@ import "./zombiefeeding.sol";
     memory → インスタンス化して生成し、必ずサイズを指定する
  */
 
-
 /**
     @dev  ゾンビが一定のレベルに達したら、何か特別な能力を身につけるようにする
  */
 contract ZombieHelper is ZombieFeeding {
-
     /**
         @param _zombieId -> ゾンビのインデックス
         zombiefactory.sol の zombies配列から、Zomibie構造体をGetし、レベルを取り出す
@@ -25,14 +23,18 @@ contract ZombieHelper is ZombieFeeding {
         _;
     }
 
-
-    function changeName(uint _zombieId, string memory _newName) external aboveLevel(2, _zombieId) {
+    function changeName(
+        uint _zombieId,
+        string memory _newName
+    ) external aboveLevel(2, _zombieId) {
         require(msg.sender == zombieToOwner[_zombieId]);
         zombies[_zombieId].name = _newName;
     }
 
-
-    function changeDna(uint _zombieId, uint _newDna) external aboveLevel(20, _zombieId) {
+    function changeDna(
+        uint _zombieId,
+        uint _newDna
+    ) external aboveLevel(20, _zombieId) {
         require(msg.sender == zombieToOwner[_zombieId]);
         zombies[_zombieId].dna = _newDna;
     }
@@ -47,13 +49,15 @@ contract ZombieHelper is ZombieFeeding {
             作ってしまえばいい。 そうすればtransfer関数はstorage内の配列を並び替える
             必要がないため安く抑えられるし、直感的ではないにしろ全体のコストも抑えられる。
      */
-    function getZombiesByOwner(address _owner) external view returns(uint[] memory) {
+    function getZombiesByOwner(
+        address _owner
+    ) external view returns (uint[] memory) {
         uint[] memory result = new uint[](ownerZombieCount[_owner]);
-        
+
         uint counter = 0;
-        for(uint i = 0; i < zombies.length; i++) {
+        for (uint i = 0; i < zombies.length; i++) {
             // owner == address
-            if(zombieToOwner[i] == _owner) {
+            if (zombieToOwner[i] == _owner) {
                 result[counter] = i;
                 counter++;
             }
@@ -61,5 +65,4 @@ contract ZombieHelper is ZombieFeeding {
 
         return result;
     }
-
 }

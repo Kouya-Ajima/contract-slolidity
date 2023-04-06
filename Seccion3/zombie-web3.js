@@ -1,3 +1,5 @@
+/** @format */
+
 // コントラクトへアクセス ############
 var abi; //コンパイラー
 var ZombieFeedingContract = web3.eth.contract(abi);
